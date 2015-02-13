@@ -41,13 +41,15 @@ var GraphicsManager = function (canvas_container, width, height) {
 
     /**
      * Draw objects to the screen
-     * @param  {Array} objects The object to draw on the screen
+     * @param  {json} json JSON object with board state
      */
-    this.draw = function () {
+    this.draw = function (json) {
         // clear the canvas
         context.clearRect(0, 0, canvas.width, canvas.height);
 
         drawBoard();
+        drawUnits(json["white"], 0);
+        drawUnits(json["black"], 1);
     };
 
     /**
@@ -78,24 +80,6 @@ var GraphicsManager = function (canvas_container, width, height) {
                 drawRectangle(c*square_width, r*square_height, square_width, square_height, square_color[(r+c)%2]);
             }
         }
-
-        // draw example
-        drawUnit("P", 1, 0, 1);
-        drawUnit("P", 1, 1, 1);
-        drawUnit("P", 1, 2, 1);
-        drawUnit("P", 1, 3, 1);
-        drawUnit("P", 1, 4, 1);
-        drawUnit("P", 1, 5, 1);
-        drawUnit("P", 1, 6, 1);
-        drawUnit("P", 1, 7, 1);
-        drawUnit("R", 1, 0, 0);
-        drawUnit("H", 1, 1, 0);
-        drawUnit("B", 1, 2, 0);
-        drawUnit("Q", 1, 3, 0);
-        drawUnit("K", 1, 4, 0);
-        drawUnit("B", 1, 5, 0);
-        drawUnit("H", 1, 6, 0);
-        drawUnit("R", 1, 7, 0);
     }
 
     /**
@@ -112,8 +96,20 @@ var GraphicsManager = function (canvas_container, width, height) {
         context.font = "bold " + Math.min(square_height, square_width)*0.9 + "px Arial";
         context.textAlign = 'center';
         context.textBaseline = 'middle';
-        context.fillText(unit, r*square_height + square_height/2, c*square_width + square_width/2);
+        context.fillText(unit, c*square_width + square_width/2, r*square_height + square_height/2);
+    }
 
+    /**
+     * Draw all the units for a given team to the canvas
+     * @param  {json} json JSON representation of the current team state
+     * @param  {int} team The team id
+     */
+    function drawUnits(json, team) {
+        for (var i in json) {
+            if (json[i][0].between()-1, 8) {
+                drawUnit(json[i][2], team, json[i][0], json[i][1]);
+            }
+        }
     }
 
     /**
@@ -125,6 +121,11 @@ var GraphicsManager = function (canvas_container, width, height) {
         // resize the canvas
         context.canvas.width = window.innerWidth;
         context.canvas.height = window.innerHeight;
+    };
+
+    // from: http://stackoverflow.com/questions/12806304/shortest-code-to-check-if-a-number-is-in-a-range-in-javascript
+    Number.prototype.between = function (min, max) {
+        return this > min && this < max;
     };
 
     // initialize object
