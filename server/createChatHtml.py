@@ -7,14 +7,38 @@ class CreateChatHTML:
         self.host = host
         self.port = port
 
-    def prepareString(self):
-        string = \
-            ("<html>"
-                "<head>"
-                "<script type='application/javascript'" 
+    def getHeaderString(self):
+        headerString = "<html><head>"
+        return headerString
+
+    def getJsTypeString(self):
+        jsTypeString = \
+                ("<script type='application/javascript'" 
                         " src='https://ajax.googleapis.com/ajax/libs/jquery/"
                             "1.8.3/jquery.min.js'>"
-                "</script>"
+                "</script>")
+        return jsTypeString
+
+    def getFooterString(self):
+        footerString = "</html>"
+        return footerString
+
+    def getHtmlString(self):
+        htmlString =  \
+            ("<body>"
+             "<form action='#' id='chatform' method='get'>"
+                "<textarea id='chat' cols='35' rows='10'></textarea>"
+                "<br />"
+                "<label for='message'>"+self.user+":"
+                    "</label><input type='text' id='message' />"
+                "<input id='send' type='submit' value='Send' />"
+             "</form>"
+             "</body>")
+        return htmlString
+
+    def getChatroomString(self):
+        chatroomString = \
+            (
                 "<script type='application/javascript'>"
                     "$(document).ready(function() {"
                         "websocket = '"+self.scheme+"://"+
@@ -54,25 +78,23 @@ class CreateChatHTML:
                         "$('#send').click(function() {"
                             "console.log($('#message').val());"
                             "ws.send('"+self.user+": ' + $('#message').val());"
-                            "$('#message').val("");"
+                            "$('#message').val('');"
                             "return false;"
                         "});"
                     "});"
                     "</script>"
             "</head>" 
-            "<body>"
-            "<form action='#' id='chatform' method='get'>"
-                "<textarea id='chat' cols='35' rows='10'></textarea>"
-                "<br />"
-                "<label for='message'>"+self.user+":"
-                    "</label><input type='text' id='message' />"
-                "<input id='send' type='submit' value='Send' />"
-            "</form>"
-            "</body>"
-        "</html>")
-        print string
+        )
 
-        return string
+        return chatroomString 
 
     def getString(self):
-        return self.prepareString()
+        header = self.getHeaderString()
+        js = self.getJsTypeString()
+        chat = self.getChatroomString()
+        html = self.getHtmlString()
+        footer = self.getFooterString()
+
+        prepared = header+js+chat+html+footer
+
+        return prepared
