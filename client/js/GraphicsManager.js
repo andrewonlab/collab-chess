@@ -9,6 +9,10 @@ var GraphicsManager = function (canvas_container, width, height) {
     var context = null;
     var square_width = null;
     var square_height = null;
+    var tint_canvas = document.createElement('canvas');
+    tint_canvas.width = 600;
+    tint_canvas.height = 600;
+    var tint_context = tint_canvas.getContext('2d');
 
     /**
      * Initialize HTML5 canvas
@@ -72,7 +76,10 @@ var GraphicsManager = function (canvas_container, width, height) {
      * Draw the chess board to the canvas
      */
     function drawBoard() {
-        var square_color = ['#F6E497', '#4C1B1B']; //https://color.adobe.com/Cherry-Cheesecake-color-theme-2354/edit/?copy=true&base=0&rule=Custom&selected=2&name=Copy%20of%20Cherry%20Cheesecake&mode=rgb&rgbvalues=0.72549,0.0705882,0.105882,0.298039,0.105882,0.105882,0.964706,0.894118,0.592157,0.988235,0.980392,0.882353,0.741176,0.552941,0.27451&swatchOrder=0,1,2,3,4
+        // var square_color = ['#F6E497', '#4C1B1B']; //https://color.adobe.com/Cherry-Cheesecake-color-theme-2354/edit/?copy=true&base=0&rule=Custom&selected=2&name=Copy%20of%20Cherry%20Cheesecake&mode=rgb&rgbvalues=0.72549,0.0705882,0.105882,0.298039,0.105882,0.105882,0.964706,0.894118,0.592157,0.988235,0.980392,0.882353,0.741176,0.552941,0.27451&swatchOrder=0,1,2,3,4
+        // Color scheme: https://color.adobe.com/Honey-Pot-color-theme-1490158/edit/?copy=true
+        var square_color = ['#FFFAD5', '#FFD34E']; // cream, yellow
+        // var square_color = ['#105B63', '#BD4932']; // blue, red
 
         for (var r = 0; r<8; r++) {
             for (var c = 0;  c<8; c++) {
@@ -90,13 +97,76 @@ var GraphicsManager = function (canvas_container, width, height) {
      * @param  {int} c The column the unit is on
      */
     function drawUnit(unit, team, r, c) {
-        var team_colors = ['#FCFAE1', '#B9121B'];
+        // var team_colors = [{r:16, g:91, b:99}, {r:189, g:73, b:50}]; // blue, red
+        // var team_colors = [{r:255, g:250, b:213}, {r:219, g:158, b:54}]; // cream, yellow
+        var team_colors = ['#BD4932', '#105B63']; // red, blue
 
-        context.fillStyle = team_colors[team];
-        context.font = "bold " + Math.min(square_height, square_width)*0.9 + "px Arial";
-        context.textAlign = 'center';
-        context.textBaseline = 'middle';
-        context.fillText(unit, c*square_width + square_width/2, r*square_height + square_height/2);
+        // aquire correct image for the unit, the scale for that image, and its position on the board
+        var img = null;
+        var w = square_width;
+        var h = square_width;
+        var x = c*square_width;
+        var y = r*square_height;
+        var big_mod = 0.9;
+        var med_mod = 0.8;
+        var small_mod = 0.6;
+        switch (unit) {
+            case 'k':
+                img = document.getElementById("king_img");
+                w *= big_mod;
+                h *= big_mod;
+                x = c*square_width + (square_width - square_width*big_mod)/2;
+                y = r*square_height + (square_height - square_height*big_mod)/2;
+                break;
+            case 'q':
+                img = document.getElementById("queen_img");
+                w *= big_mod;
+                h *= big_mod;
+                x = c*square_width + (square_width - square_width*big_mod)/2;
+                y = r*square_height + (square_height - square_height*big_mod)/2;
+                break;
+            case 'r':
+                img = document.getElementById("rook_img");
+                w *= med_mod;
+                h *= med_mod;
+                x = c*square_width + (square_width - square_width*med_mod)/2;
+                y = r*square_height + 3*(square_height - square_height*big_mod)/2;
+                break;
+            case 'b':
+                img = document.getElementById("bishop_img");
+                w *= med_mod;
+                h *= med_mod;
+                x = c*square_width + (square_width - square_width*med_mod)/2;
+                y = r*square_height + 3*(square_height - square_height*big_mod)/2;
+                break;
+            case 'h':
+                img = document.getElementById("knight_img");
+                w *= med_mod;
+                h *= med_mod;
+                x = c*square_width + (square_width - square_width*med_mod)/2;
+                y = r*square_height + 3*(square_height - square_height*big_mod)/2;
+                break;
+            case 'p':
+                img = document.getElementById("pawn_img");
+                w *= small_mod;
+                h *= small_mod;
+                x = c*square_width + (square_width - square_width*small_mod)/2;
+                y = r*square_height + (square_height - square_height*small_mod)/2;
+                break;
+            default:
+                console.error("Could not find a unit of type " + unit);
+                return;
+        }
+
+        // tint image
+        tint_context.clearRect(0, 0, tint_canvas.width, tint_canvas.height);    // clear any old tinting from the tint canvas
+        tint_context.fillStyle = team_colors[team];                             // select the correct team color
+        tint_context.fillRect(0, 0, tint_canvas.width, tint_canvas.height);     // fill the tint canvas with the color
+        tint_context.globalCompositeOperation = "destination-atop";             // set the layer blend mode
+        tint_context.drawImage(img, 0, 0);                                      // tint the image the desired color
+
+        // draw tinted image to the canvas
+        context.drawImage(tint_canvas, x, y, w, h);
     }
 
     /**
