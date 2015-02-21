@@ -307,7 +307,10 @@ def searchBoard(board):
             #x-coordinate of the spot
             temp.append((start%10)-1)
             #the letter of the piece
-            temp.append(board[start])
+            if board[start] == 'n':
+                temp.append('h')
+            else:
+                temp.append(board[start])
             #add this tuple to the list for team black
             teamBlack.append(temp)
             start = start + 1
@@ -327,7 +330,7 @@ def searchBoard(board):
             elif (board[start] == 'B'):
                 temp.append('b')
             elif (board[start] == 'N'):
-                temp.append('n')
+                temp.append('h')
             elif (board[start] == 'R'):
                 temp.append('r')
             #put this tuple into list for white team
