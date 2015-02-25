@@ -9,9 +9,23 @@ from ws4py.server.cherrypyserver import WebSocketPlugin, WebSocketTool
 from ws4py.websocket import WebSocket
 from ws4py.messaging import TextMessage
 
+global voteCount
+global moveTimer
+
+voteCount = 0
+
 class ChatWebSocketHandler(WebSocket):
     def received_message(self, m):
-        cherrypy.engine.publish('websocket-broadcast', m)
+        global voteCount
+         
+        #TODO: parse received messages here and determine broadcast action
+        if (str(m) == 'vote_button'):
+            print "*****vote button pressed *****" 
+            voteCount = voteCount + 1
+            msg = "vote:"+str(voteCount)
+            cherrypy.engine.publish('websocket-broadcast', msg)
+        else:
+            cherrypy.engine.publish('websocket-broadcast', m)
 
     def closed(self, code, reason="A client left the room without a proper explanation."):
         cherrypy.engine.publish('websocket-broadcast', TextMessage(reason))
@@ -28,6 +42,8 @@ class Root(object):
         chat_server = createChatHtml.CreateChatHTML(random_user,
                         str(self.scheme), str(self.host), str(self.port))
         html_string = chat_server.getString()
+        
+        #TODO: implement chess elements in here for updates
         return html_string
 
     @cherrypy.expose
@@ -39,7 +55,7 @@ if __name__ == '__main__':
     from ws4py import configure_logger
     configure_logger(level=logging.DEBUG)
 
-    parser = argparse.ArgumentParser(description='Echo CherryPy Server')
+    parser = argparse.ArgumentParser(description='Chess Server')
     parser.add_argument('--host', default='127.0.0.1')
     parser.add_argument('-p', '--port', default=9000, type=int)
     parser.add_argument('--ssl', action='store_true')
@@ -47,7 +63,9 @@ if __name__ == '__main__':
 
     cherrypy.config.update({'server.socket_host': args.host,
                             'server.socket_port': args.port,
-                            'tools.staticdir.root': os.path.abspath(os.path.join(os.path.dirname(__file__), 'static'))})
+                            'tools.staticdir.root':\
+                            os.path.abspath(
+                                os.path.join(os.path.dirname(__file__), 'static'))})
 
     if args.ssl:
         cherrypy.config.update({'server.ssl_certificate': './server.crt',
@@ -67,3 +85,4 @@ if __name__ == '__main__':
             }
         }
     )
+
