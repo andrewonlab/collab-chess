@@ -2,7 +2,7 @@
 
 import argparse
 import random
-import os
+import os, os.path
 import cherrypy
 import createChatHtml 
 from ws4py.server.cherrypyserver import WebSocketPlugin, WebSocketTool
@@ -19,6 +19,7 @@ class ChatWebSocketHandler(WebSocket):
         global voteCount
          
         #TODO: parse received messages here and determine broadcast action
+        # use a string 'key' for m to distinguish different messages
         if (str(m) == 'vote_button'):
             print "*****vote button pressed *****" 
             voteCount = voteCount + 1
@@ -82,6 +83,10 @@ if __name__ == '__main__':
         '/js': {
               'tools.staticdir.on': True,
               'tools.staticdir.dir': 'js'
+            },
+        '/img': {
+              'tools.staticdir.on': True,
+              'tools.staticdir.dir': 'img'
             }
         }
     )
