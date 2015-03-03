@@ -1,6 +1,10 @@
+import json
+
 class CreateChatHTML:
     def __init__(self, user, scheme, host, port):
-        self.user = user
+        clientId = str(user['clientId'])
+        clientId = json.dumps(clientId)
+        self.clientId = clientId 
         self.scheme = scheme
         self.host = host
         self.port = port
@@ -22,8 +26,8 @@ class CreateChatHTML:
         return headerString
 
     def temp_json1(self, json2):
-
-        jsonString = (
+        if not json2:
+            jsonString = (
         '{'
         '"black": ['
             '[0, 4, "k"],'
@@ -43,6 +47,27 @@ class CreateChatHTML:
             '],'
             '}'
          )
+
+        if json2:
+            jsonString = ('{'
+        '"black": ['
+            '[0, 4, "q"],'
+            '[0, 3, "q"],'
+            '[0, 2, "b"], [0, 5, "b"],'
+            '[0, 1, "h"], [0, 6, "h"],'
+            '[0, 0, "r"], [0, 7, "r"],'
+            '[1, 0, "p"], [1, 1, "p"], [1, 2, "p"], [1, 3, "p"], [1, 4, "p"], [1, 5, "p"], [1, 6, "p"], [1, 7, "p"]'
+        '],'
+        '"white": ['
+            '[7, 4, "q"],'
+            '[7, 3, "q"],'
+            '[7, 2, "b"], [7, 5, "b"],'
+            '[7, 1, "h"], [7, 6, "h"],'
+            '[7, 0, "r"], [7, 7, "r"],'
+            '[6, 0, "p"], [6, 1, "p"], [6, 2, "p"], [6, 3, "p"], [6, 4, "p"], [6, 5, "p"], [6, 6, "p"], [6, 7, "p"]'
+            '],'
+            '}'
+        )
         
         return jsonString
 
@@ -50,7 +75,7 @@ class CreateChatHTML:
         
         jsonStr1 = str(self.temp_json1(json2 = False))
         jsonStr2 = str(self.temp_json1(json2 = True))
-        
+    
         jsString = \
             (
                 "<script type='application/javascript'>"
@@ -82,7 +107,7 @@ class CreateChatHTML:
                         
                         "window.onbeforeunload = function(e) {"
                             "$('#chat').val($('#chat').val()+'Exiting \\n');"
-                            "ws.close(1000, '"+self.user+" left the room');"
+                            "ws.close(1000, '"+str(self.clientId)+" left the room');"
                         
                             "if(!e) e = window.event;"
                             "e.stopPropagation();"
@@ -91,16 +116,17 @@ class CreateChatHTML:
 
                         #Received message evaluation
                         "ws.onmessage = function(evt) {"
+                            # Save board object from server data
+                            #"var jsonBoard = jQuery.parseJSON(evt.data);"
                             #If messaged received is a vote message
                             "if(evt.data.indexOf('vote') !== -1) {"
                                 #Update votecount field to value
                                 "$('#voteCount').val(evt.data);"
                             "}"
-                            "else if(evt.data.indexOf('draw_button1') !== -1) {"
-                                "gfx.draw(json1)" 
-                            "}"
-                            "else if(evt.data.indexOf('draw_button2') !== -1) {"
-                                "gfx.draw(json2)" 
+                            # Draw board state that we received
+                            "else if(evt.data.indexOf('black') !== -1) {"
+                                "var jsonBoard = jQuery.parseJSON(evt.data);"
+                                "gfx.draw(jsonBoard);" 
                             "}"
                             #If chat message, update chat field
                             "else {"
@@ -108,7 +134,8 @@ class CreateChatHTML:
                             "}"
                         "};"
                         "ws.onopen = function() {"
-                            "ws.send('"+self.user+" entered the game');" 
+                            # TODO: Parse json object from self.user
+                            "ws.send('"+str(self.clientId)+" entered the game');" 
                         "};"
                         "ws.onclose = function(evt) {"
                             "$('#chat').val($('#chat').val() +"
@@ -118,7 +145,7 @@ class CreateChatHTML:
 
                         "$('#send').click(function() {"
                             "console.log($('#message').val());"
-                            "ws.send('"+self.user+": ' + $('#message').val());"
+                            "ws.send('"+str(self.clientId)+": ' + $('#message').val());"
                             "$('#message').val('');"
                             "return false;"
                         "});"
@@ -148,7 +175,7 @@ class CreateChatHTML:
              "<img id='king_img' src='/img/png/king_large.png' width='200' height='200' alt='king' />"
              "<img id='queen_img' src='/img/png/queen_large.png' width='200' height='200' alt='queen' />"
              "<img id='rook_img' src='/img/png/rook_large.png' width='200' height='200' alt='rook' />"
-             "<img id='bishop_img/ src='/img/png/bishop_large.png' width='200' height='200' alt='bishop' />"
+             "<img id='bishop_img' src='/img/png/bishop_large.png' width='200' height='200' alt='bishop' />"
              "<img id='knight_img' src='/img/png/knight_large.png' width='200' height='200' alt='knight' />"
              "<img id='pawn_img' src='/img/png/pawn_large.png' width='200' height='200' alt='pawn' />"
              "</div>" 
@@ -159,7 +186,7 @@ class CreateChatHTML:
              "<form action='#' id='chatform' method='get'>"
                 "<textarea readonly id='chat' cols='35' rows='10'></textarea>"
                 "<br />"
-                "<label for='message'>"+self.user+":"
+                "<label for='message'>"+str(self.clientId)+":"
                     "</label><input type='text' id='message' />"
                 "<input id='send' type='submit' value='Send' />"
              "</form>"
