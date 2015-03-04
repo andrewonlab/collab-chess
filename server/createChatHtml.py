@@ -152,7 +152,9 @@ class CreateChatHTML:
                        
                         #If vote button is clicked, send key str 'vote_button'
                         "$('#voteButton').click(function() {"
-                            "ws.send('vote_button');"
+                            "var voteClient ="
+                            "'{\"voteType\":\"vote_count\",\"clientId\":"+str(self.clientId)+"}';"
+                            "ws.send(voteClient);"
                         "});"
                         "$('#drawButton1').click(function() {"
                             "ws.send('draw_button1');"

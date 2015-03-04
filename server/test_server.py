@@ -6,16 +6,18 @@ import os, os.path
 import cherrypy
 import createChatHtml 
 import clientHandle
+import json
 from ws4py.server.cherrypyserver import WebSocketPlugin, WebSocketTool
 from ws4py.websocket import WebSocket
 from ws4py.messaging import TextMessage
 
-global voteCount
+global clientVote
 global moveTimer
 global jsonBoard1
 global jsonBoard2
 
-voteCount = 0
+moveTimer = 0
+clientVote = '' 
 jsonBoard1 = ('{'
         '"black": ['
             '[0, 4, "k"],'
@@ -60,12 +62,18 @@ class ChatWebSocketHandler(WebSocket):
         global voteCount
         global jsonBoard1
         global jsonBoard2
+        global moveTimer
+        
         #TODO: parse received messages here and determine broadcast action
         # use a string 'key' for m to distinguish different messages
-        if (str(m) == 'vote_button'):
-            print "*****vote button pressed *****" 
-            voteCount = voteCount + 1
-            msg = "vote:"+str(voteCount)
+        print m
+        if ('voteType' in str(m)):
+            castVote = json.loads(str(m))
+            print str(castVote) + "  *** Vote cast ***"
+            #TODO: keep track of which clients have already voted
+
+            clientVote = '{ client: '+castVote['clientId']+'}'
+            msg = "vote:"+str(clientVote)
             cherrypy.engine.publish('websocket-broadcast', msg)
         elif (str(m) == 'draw_button1'):
             print "*****draw button1 pressed ****"
