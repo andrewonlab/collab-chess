@@ -131,6 +131,11 @@ class CreateChatHTML:
                             #If chat message, update chat field
                             "else {"
                                 "$('#chat').val($('#chat').val() + evt.data + '\\n');"
+                                "var pconsole = $('#chat');"
+                                "if(pconsole.length) {"
+                                    "pconsole.scrollTop(pconsole[0].scrollHeight - "
+                                        "pconsole.height());"
+                                "}"
                             "}"
                         "};"
                         "ws.onopen = function() {"
