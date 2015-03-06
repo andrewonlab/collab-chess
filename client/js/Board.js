@@ -1,4 +1,4 @@
-var Board = function () {
+var Board = function (json) {
     var MAX_ROW = 8;
     var MAX_COL = 8;
 
@@ -7,14 +7,48 @@ var Board = function () {
     /**
      * Create the board
      */
-    this.init = function () {
+    this.init = function (json) {
         this.board = [];
         for (var r = 0; r<MAX_ROW; r++) {
             var row = [];
             for (var c = 0; c<MAX_COL; c++) {
-                row.append(null);
+                row.push(null);
             }
-            this.board.append(row);
+            this.board.push(row);
+        }
+
+        this.addUnits(json["white"], 0);
+        this.addUnits(json["black"], 1);
+    };
+
+    this.addUnits = function (json, team) {
+        for (var i in json) {
+            if (json[i][0].between()-1, 8) {
+                this.addUnit(json[i][2], team, json[i][0], json[i][1]);
+            }
+        }
+    };
+
+    this.addUnit = function (type, team, r, c) {
+        switch (type) {
+            case 'k':
+                this.board[r][c] = new King(r, c, team);
+                return;
+            case 'q':
+                this.board[r][c] = new Queen(r, c, team);
+                return;
+            case 'r':
+                this.board[r][c] = new Rook(r, c, team);
+                return;
+            case 'b':
+                this.board[r][c] = new Bishop(r, c, team);
+                return;
+            case 'h':
+                this.board[r][c] = new Knight(r, c, team);
+                return;
+            case 'p':
+                this.board[r][c] = new Pawn(r, c, team);
+                return;
         }
     };
 
@@ -46,7 +80,7 @@ var Board = function () {
      * @param  {col} to_c   the col to move to
      */
     this.movePiece = function (from_r, from_c, to_r, to_c) {
-        if (!isOccupied(from_r, from_c)) {
+        if (!this.isOccupied(from_r, from_c)) {
             throw "Tile unnocpuied! Cannot move a unit from an empty tile!";
         }
 
@@ -60,5 +94,5 @@ var Board = function () {
     };
 
     // initialize the board
-    this.init();
+    this.init(json);
 };
