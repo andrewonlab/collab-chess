@@ -225,11 +225,11 @@ Pawn.prototype.getMoves = function () {
     var fwd_move = [this.r + this.d, this.c];
     if (!this.board.isOccupied(fwd_move[0], fwd_move[1])) {
         moves.push(fwd_move);
+        if (!this.moved) {
+            moves.push([this.r + 2 * this.d, this.c]);
+        }
     }
 
-    if (!this.moved) {
-        moves.push([this.r + 2 * this.d, this.c]);
-    }
 
     moves = this.getPawnAttack(moves, [this.r + this.d, this.c + 1]);
     moves = this.getPawnAttack(moves, [this.r + this.d, this.c - 1]);
