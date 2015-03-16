@@ -76,8 +76,8 @@ var Piece = function(r, c, team) {
      * @param  {bool} cap if true, will only return the first moves found in any direction
      */
     this.getVMoves = function(moves, cap) {
-        moves = this.getGenericMoves(moves, cap, 1, 0, 8, 1);
-        moves = this.getGenericMoves(moves, cap, -1, 0, -1, 1);
+        moves = this.getGenericMoves(moves, cap, 1, 0, 8, 8);
+        moves = this.getGenericMoves(moves, cap, -1, 0, -1, -1);
 
         return moves;
     };
@@ -101,6 +101,7 @@ var Piece = function(r, c, team) {
 
 var King = function(r, c, team, board) {
     this.init(r, c, team, board);
+    this.type = 'k';
 };
 King.prototype = new Piece();
 
@@ -114,6 +115,7 @@ King.prototype.getMoves = function () {
 
 var Queen = function(r, c, team, board) {
     this.init(r, c, team, board);
+    this.type = 'q';
 };
 Queen.prototype = new Piece();
 
@@ -127,6 +129,7 @@ Queen.prototype.getMoves =  function () {
 
 var Rook = function(r, c, team, board) {
     this.init(r, c, team, board);
+    this.type = 'r';
 };
 Rook.prototype = new Piece();
 
@@ -139,6 +142,7 @@ Rook.prototype.getMoves = function () {
 
 var Bishop = function(r, c, team, board) {
     this.init(r, c, team, board);
+    this.type = 'b';
 };
 Bishop.prototype = new Piece();
 
@@ -150,6 +154,7 @@ Bishop.prototype.getMoves = function () {
 
 var Knight = function(r, c, team, board) {
     this.init(r, c, team, board);
+    this.type = 'h';
 };
 Knight.prototype = new Piece();
 
@@ -191,11 +196,13 @@ Knight.prototype.getMoves = function () {
 var Pawn = function(r, c, team, board) {
     this.init(r, c, team, board);
     this.d = 0;
-    if (r < 2) {
+    if (team == 1) {
         this.d = 1;
     } else {
         this.d = -1;
     }
+
+    this.type = 'p';
 };
 Pawn.prototype = new Piece();
 
