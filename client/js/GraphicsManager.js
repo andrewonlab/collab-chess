@@ -47,11 +47,11 @@ var GraphicsManager = function (canvas_container, width, height) {
      * Draw objects to the screen
      * @param  {json} json JSON object with board state
      */
-    this.draw = function (json, green_h, red_h) {
+    this.draw = function (json, moves, board) {
         // clear the canvas
         context.clearRect(0, 0, canvas.width, canvas.height);
 
-        drawBoard(green_h, red_h);
+        drawBoard(moves, board);
         drawUnits(json["white"], 0);
         drawUnits(json["black"], 1);
     };
@@ -63,42 +63,44 @@ var GraphicsManager = function (canvas_container, width, height) {
      * @param  {float} width  The width of the rectangle
      * @param  {float} height The height of the rectangle
      * @param  {color} color  The color of the rectangle.
+     * @param  {float} opacity  The opacity of the rectangle.
      */
-    function drawRectangle(x, y, width, height, color) {
+    function drawRectangle(x, y, width, height, color, opacity) {
         // set the rectangle's color
         context.fillStyle = color;
 
         // create the rectangle
+        context.globalAlpha = opacity;
         context.fillRect(x, y, width, height);
+        context.globalAlpha = 1;
     }
 
     /**
      * Draw the chess board to the canvas
      */
-    function drawBoard(green_h, red_h) {
-        green_h = typeof green_h !== 'undefined' ? green_h : [];
-        red_h = typeof red_h !== 'undefined' ? red_h : [];
+    function drawBoard(moves, board) {
+        moves = typeof moves !== 'undefined' ? moves : [];
 
         // var square_color = ['#F6E497', '#4C1B1B']; //https://color.adobe.com/Cherry-Cheesecake-color-theme-2354/edit/?copy=true&base=0&rule=Custom&selected=2&name=Copy%20of%20Cherry%20Cheesecake&mode=rgb&rgbvalues=0.72549,0.0705882,0.105882,0.298039,0.105882,0.105882,0.964706,0.894118,0.592157,0.988235,0.980392,0.882353,0.741176,0.552941,0.27451&swatchOrder=0,1,2,3,4
         // Color scheme: https://color.adobe.com/Honey-Pot-color-theme-1490158/edit/?copy=true
         var square_color = ['#FFFAD5', '#FFD34E']; // cream, yellow
+        var move_color = '#356330'; // green
+        var attack_color = '#BD4E17'; //red
         // var square_color = ['#105B63', '#BD4932']; // blue, red
 
         for (var r = 0; r<8; r++) {
             for (var c = 0;  c<8; c++) {
-                    drawRectangle(c*square_width, r*square_height, square_width, square_height, square_color[(r+c)%2]);
+                    drawRectangle(c*square_width, r*square_height, square_width, square_height, square_color[(r+c)%2], 1);
             }
         }
 
-        // draw green tiles
-        for (var i = 0; i<green_h.length; i++) {
-            drawRectangle(green_h[i][1]*square_width, green_h[i][0]*square_height, square_width, square_height, 'green');
-        }
-
-
-        // draw red tiles
-        for (i = 0; i<red_h.length; i++) {
-            drawRectangle(red_h[i][1]*square_width, red_h[i][0]*square_height, square_width, square_height, 'green');
+        // draw movement tiles
+        for (var i = 0; i<moves.length; i++) {
+            if (board.isOccupied(moves[i][0], moves[i][1])) {
+                drawRectangle(moves[i][1]*square_width, moves[i][0]*square_height, square_width, square_height, attack_color, .5);
+            } else {
+                drawRectangle(moves[i][1]*square_width, moves[i][0]*square_height, square_width, square_height, move_color, .5);
+            }
         }
     }
 

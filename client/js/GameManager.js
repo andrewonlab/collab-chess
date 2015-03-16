@@ -14,7 +14,7 @@ var GameManager = function (canvas_container, width, height, json) {
         json = typeof json !== 'undefined' ? json : my_json;
         my_json = json;
 
-        this.gfx.draw(json, moves);
+        this.gfx.draw(json, moves, board);
     };
 
     function getClickedTile (event) {
@@ -29,7 +29,7 @@ var GameManager = function (canvas_container, width, height, json) {
         var c = tile[1];
 
         if (selected_tile !== null) {
-            if (selected_tile[0] != r || selected_tile[1] != c) {
+            if ((selected_tile[0] != r || selected_tile[1] != c) && validMove(tile)) {
                 board.movePiece(selected_tile[0], selected_tile[1], r, c);
                 updateJSON(selected_tile[0], selected_tile[1], r, c, board.getPiece(r, c).team);
                 selected_tile = null;
@@ -40,10 +40,8 @@ var GameManager = function (canvas_container, width, height, json) {
             }
         } else if (board.isOccupied(r, c)) {
             selected_tile = tile;
-            moves = board.getPiece(r, c).getMoves();
+            moves = board.getPiece(r, c).getMoves(board);
         }
-        // console.log(r, c, selected_tile);
-        // console.log(moves);
     }
 
     function updateJSON(from_r, from_c, to_r, to_c, team) {
@@ -61,6 +59,16 @@ var GameManager = function (canvas_container, width, height, json) {
                 return;
             }
         }
+    }
+
+    function validMove(target_tile) {
+        for (var i=0; i<moves.length; i++) {
+            if (target_tile[0] == moves[i][0] && target_tile[1] == moves[i][1]) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     document.addEventListener("click", boardClick );
