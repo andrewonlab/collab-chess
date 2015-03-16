@@ -97,9 +97,9 @@ var GraphicsManager = function (canvas_container, width, height) {
         // draw movement tiles
         for (var i = 0; i<moves.length; i++) {
             if (board.isOccupied(moves[i][0], moves[i][1])) {
-                drawRectangle(moves[i][1]*square_width, moves[i][0]*square_height, square_width, square_height, attack_color, .5);
+                drawRectangle(moves[i][1]*square_width, moves[i][0]*square_height, square_width, square_height, attack_color, 0.5);
             } else {
-                drawRectangle(moves[i][1]*square_width, moves[i][0]*square_height, square_width, square_height, move_color, .5);
+                drawRectangle(moves[i][1]*square_width, moves[i][0]*square_height, square_width, square_height, move_color, 0.5);
             }
         }
     }

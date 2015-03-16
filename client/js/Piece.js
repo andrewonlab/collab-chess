@@ -16,13 +16,13 @@ var Piece = function(r, c, team) {
         this.c = c;
         this.team = team;
         this.board = board;
-        this.moved = false;
+        this.num_moves = 0;
     };
 
     this.moveTo = function (r, c) {
         this.r = r;
         this.c = c;
-        this.moved = true;
+        this.num_moves++;
     };
 
     /**
@@ -196,7 +196,6 @@ var Pawn = function(r, c, team, board) {
     } else {
         this.d = -1;
     }
-    this.moved = false;
 };
 Pawn.prototype = new Piece();
 
@@ -225,7 +224,7 @@ Pawn.prototype.getMoves = function () {
     var fwd_move = [this.r + this.d, this.c];
     if (!this.board.isOccupied(fwd_move[0], fwd_move[1])) {
         moves.push(fwd_move);
-        if (!this.moved) {
+        if (this.num_moves === 0) {
             fwd_move = [this.r + 2 * this.d, this.c];
             if (!this.board.isOccupied(fwd_move[0], fwd_move[1])) {
                 moves.push(fwd_move);
