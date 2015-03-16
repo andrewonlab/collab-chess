@@ -226,7 +226,10 @@ Pawn.prototype.getMoves = function () {
     if (!this.board.isOccupied(fwd_move[0], fwd_move[1])) {
         moves.push(fwd_move);
         if (!this.moved) {
-            moves.push([this.r + 2 * this.d, this.c]);
+            fwd_move = [this.r + 2 * this.d, this.c];
+            if (!this.board.isOccupied(fwd_move[0], fwd_move[1])) {
+                moves.push(fwd_move);
+            }
         }
     }
 
