@@ -62,6 +62,8 @@ var GameManager = function (canvas_container, width, height, json) {
                 if (board.isOccupied(r, c)) {
                     last_occupant = board.getPiece(r, c);
                     updateJSON(r, c, -1, -1, board.getPiece(r, c).team);
+                } else {
+                    last_occupant = null;
                 }
 
                 board.movePiece(selected_tile[0], selected_tile[1], r, c);
