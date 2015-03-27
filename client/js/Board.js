@@ -32,22 +32,22 @@ var Board = function (json) {
     this.addUnit = function (type, team, r, c) {
         switch (type) {
             case 'k':
-                this.board[r][c] = new King(r, c, team);
+                this.board[r][c] = new King(r, c, team, this);
                 return;
             case 'q':
-                this.board[r][c] = new Queen(r, c, team);
+                this.board[r][c] = new Queen(r, c, team, this);
                 return;
             case 'r':
-                this.board[r][c] = new Rook(r, c, team);
+                this.board[r][c] = new Rook(r, c, team, this);
                 return;
             case 'b':
-                this.board[r][c] = new Bishop(r, c, team);
+                this.board[r][c] = new Bishop(r, c, team, this);
                 return;
             case 'h':
-                this.board[r][c] = new Knight(r, c, team);
+                this.board[r][c] = new Knight(r, c, team, this);
                 return;
             case 'p':
-                this.board[r][c] = new Pawn(r, c, team);
+                this.board[r][c] = new Pawn(r, c, team, this);
                 return;
         }
     };
@@ -69,6 +69,10 @@ var Board = function (json) {
      * @return {Piece}   The piece that occupies that tile, or null if no piece does
      */
     this.getPiece = function (r, c) {
+        if (r > 7 || r < 0 || c > 7 || c < 0) {
+            return null;
+        }
+
         return this.board[r][c];
     };
 
@@ -86,8 +90,7 @@ var Board = function (json) {
 
         // move the piece
         this.board[to_r][to_c] = this.board[from_r][from_c];
-        this.board[to_r][to_c].r = to_r;
-        this.board[to_r][to_c].c = to_c;
+        this.board[to_r][to_c].moveTo(to_r, to_c);
 
         // empty the old tile
         this.board[from_r][from_c] = null;

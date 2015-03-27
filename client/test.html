@@ -42,7 +42,12 @@
     }
 
     var gm = new GameManager(document.getElementById("canvas_contianer"), board_size, board_size, json);
-    // document.addEventListener("click", gm.boardClick);
+    document.addEventListener("keypress", function (event) {
+        // if the key 'u' was pressed
+        if (event.keyCode == 117) {
+            gm.undoMove();
+        }
+    });
 
     window.setInterval(function() {
         gm.update();
