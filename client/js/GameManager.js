@@ -7,12 +7,17 @@ var GameManager = function (canvas_container, width, height, json) {
     var my_json = json;
     var last_move = null;
     var last_occupant = null;
+    var team = 0;
 
     /**
      * Updates the board
      * @param  {JSON} json Only pass in JSON if the board state has changed outside the client, IE after a move vote
      */
     this.update = function (json) {
+        if (typeof json !== 'undefined') {
+            board = new Board(json);
+        }
+
         json = typeof json !== 'undefined' ? json : my_json;
         my_json = json;
 
@@ -75,7 +80,7 @@ var GameManager = function (canvas_container, width, height, json) {
                 selected_tile = null;
                 moves = [];
             }
-        } else if (board.isOccupied(r, c)) {
+        } else if (board.isOccupied(r, c) && board.getPiece(r, c).team == team) {
             selected_tile = tile;
             moves = board.getPiece(r, c).getMoves(board);
         }
@@ -107,6 +112,10 @@ var GameManager = function (canvas_container, width, height, json) {
 
         return false;
     }
+
+    this.assignTeam = function (_team) {
+        team = _team;
+    };
 
     document.addEventListener("click", boardClick );
 };
