@@ -64,8 +64,8 @@ var Piece = function(r, c, team) {
      * @param  {bool} cap if true, will only return the first moves found in any direction
      */
     this.getHMoves = function (moves, cap) {
-        moves = this.getGenericMoves(moves, cap, 0, 1, 1, 8);
-        moves = this.getGenericMoves(moves, cap, 0, -1, 1, -1);
+        moves = this.getGenericMoves(moves, cap, 0, 1, -1, 8);
+        moves = this.getGenericMoves(moves, cap, 0, -1, -1, -1);
 
         return moves;
     };
