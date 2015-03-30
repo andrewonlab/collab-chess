@@ -28,9 +28,10 @@ class CreateChatHTML:
         
         return headerString
 
-    def temp_json1(self, json2):
-        if not json2:
-            jsonString = (
+    # Initial json to pass into GraphicsManager
+    # The current board will be updated by the server
+    def temp_json1(self):
+        jsonString = (
         '{'
         '"black": ['
             '[0, 4, "k"],'
@@ -52,37 +53,16 @@ class CreateChatHTML:
             '"chat": "current chat messages"'
             '}'
          )
-
-        if json2:
-            jsonString = ('{'
-        '"black": ['
-            '[0, 4, "q"],'
-            '[0, 3, "q"],'
-            '[0, 2, "b"], [0, 5, "b"],'
-            '[0, 1, "h"], [0, 6, "h"],'
-            '[0, 0, "r"], [0, 7, "r"],'
-            '[1, 0, "p"], [1, 1, "p"], [1, 2, "p"], [1, 3, "p"], [1, 4, "p"], [1, 5, "p"], [1, 6, "p"], [1, 7, "p"]'
-        '],'
-        '"white": ['
-            '[7, 4, "q"],'
-            '[7, 3, "q"],'
-            '[7, 2, "b"], [7, 5, "b"],'
-            '[7, 1, "h"], [7, 6, "h"],'
-            '[7, 0, "r"], [7, 7, "r"],'
-            '[6, 0, "p"], [6, 1, "p"], [6, 2, "p"], [6, 3, "p"], [6, 4, "p"], [6, 5, "p"], [6, 6, "p"], [6, 7, "p"]'
-            '],'
-            '"victory": 1,'
-            '"chat": "current chat messages"'
-            '}'
-        )
         
         return jsonString
 
     def getJsString(self):
         
-        jsonStr1 = str(self.temp_json1(json2 = False))
-        jsonStr2 = str(self.temp_json1(json2 = True))
-    
+        jsonStr1 = str(self.temp_json1())
+   
+        # TEAM: 0 = red 
+        #       1 = black
+
         jsString = \
             (
                 "<script type='application/javascript'>"
@@ -96,12 +76,23 @@ class CreateChatHTML:
                                 #    "'canvas_container'),"
                                 #    "board_size, board_size);"
                         "var json1 = "+jsonStr1+"; "
-                        "var json2 = "+jsonStr2+"; "
                         "var gm = new GameManager("
                                 "document.getElementById("
                                 "'canvas_container'),"
                                 "board_size, board_size, json1);"
-        
+
+                        # TODO: gm.assignTeam(teamId 0 or 1)
+                        "document.addEventListener('keypress',"
+                        "function(event) {"
+                            "if (event.keyCode == 117) {"
+                                "gm.undoMove();"
+                            "}"
+                        "});"
+                        
+                        "window.setInterval(function() {"
+                            "gm.update();"
+                        "}, 100);"
+
                         "websocket = '"+self.scheme+"://"+
                                        self.host+":"+
                                        self.port+"/ws';"
@@ -139,7 +130,7 @@ class CreateChatHTML:
                                 "alert(moveTimer);"
                                 "$('#moveTimer').val(moveTimer['moveTimer']);"
                             "}"
-                            # Draw board state that we received
+                            # Draw board state that we received from server
                             "else if(evt.data.indexOf('black') !== -1) {"
                                 "var jsonBoard = jQuery.parseJSON(evt.data);"
                                 "gm.update(jsonBoard);" 
@@ -158,6 +149,10 @@ class CreateChatHTML:
                         # Get various information from server on load
                         "ws.onopen = function() {"
                             # TODO: Parse json object from self.user
+                            
+                            "alert($('#chooseTeam').html());"
+                            "alert();"
+                            "ws.send('choose_team,');"
                             "ws.send('get_time');"
                             "ws.send('load_board');"
                             "ws.send('"+str(self.clientId)+" entered the game');" 
@@ -197,7 +192,7 @@ class CreateChatHTML:
     def getHtmlString(self):
         htmlString =  \
             ("<body>"
-             "<div id='canvas_container'></div>"
+                    "<div id='canvas_container'></div>"
              "<div id='preload' style='display:none'>"
              "<img id='king_img' src='/img/png/king_large.png' width='200' height='200' alt='king' />"
              "<img id='queen_img' src='/img/png/queen_large.png' width='200' height='200' alt='queen' />"
@@ -206,11 +201,12 @@ class CreateChatHTML:
              "<img id='knight_img' src='/img/png/knight_large.png' width='200' height='200' alt='knight' />"
              "<img id='pawn_img' src='/img/png/pawn_large.png' width='200' height='200' alt='pawn' />"
              "</div>" 
-            "<button type='button' id='voteButton'>vote</button>"
-            "<button type='button' id='drawButton1'>draw1</button>"
-            "<button type='button' id='drawButton2'>draw2</button>"
-            "<input id='moveTimer'></input>"
-            "<input id='voteCount'></input>" 
+             "<div id='chatBox' style='float:right; width:25%;'>"
+             "<button type='button' id='voteButton'>vote</button>"
+             "<button type='button' id='drawButton1'>draw1</button>"
+             "<button type='button' id='drawButton2'>draw2</button>"
+             "<input id='moveTimer'></input>"
+             "<input id='voteCount'></input>" 
              "<form action='#' id='chatform' method='get'>"
                 "<textarea readonly id='chat' cols='35' rows='10'></textarea>"
                 "<br />"
@@ -218,6 +214,16 @@ class CreateChatHTML:
                     "</label><input type='text' id='message' />"
                 "<input id='send' type='submit' value='Send' />"
              "</form>"
+            "</div>"
+            
+            # Team chooser popup box
+            "<div id='chooseTeam' style='display:none;'>"
+                "<input type='radio' name='Red' value=0>Red"
+                "<br>"
+                "<input type='radio' name='Black' value=1>Black"
+                "<input type='button' value='Submit'>"
+            "</div>"
+
              "</body>"
              "</html>")
         return htmlString
@@ -226,10 +232,6 @@ class CreateChatHTML:
         header = self.getHeaderString()
         js = self.getJsString()
         html = self.getHtmlString()
-
-        print "HEADER: "+header
-        print "JS: "+js
-        print "HTML: "+html
 
         chessBoard = self.getChessBoard()
 
