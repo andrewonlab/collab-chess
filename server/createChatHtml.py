@@ -21,7 +21,10 @@ class CreateChatHTML:
                         " src='https://ajax.googleapis.com/ajax/libs/jquery/"
                             "1.8.3/jquery.min.js'></script>"
                 "<script src='js/GraphicsManager.js' type='text/javascript'>"
-                "</script>")
+                "</script>"
+                "<script src='js/Piece.js' type='text/javascript'></script>"
+                "<script src='js/Board.js' type='text/javascript'></script>"
+                "<script src='js/GameManager.js' type='text/javascript'></script>")
         
         return headerString
 
@@ -45,6 +48,8 @@ class CreateChatHTML:
             '[7, 0, "r"], [7, 7, "r"],'
             '[6, 0, "p"], [6, 1, "p"], [6, 2, "p"], [6, 3, "p"], [6, 4, "p"], [6, 5, "p"], [6, 6, "p"], [6, 7, "p"]'
             '],'
+            '"victory": 1,'
+            '"chat": "current chat messages"'
             '}'
          )
 
@@ -66,6 +71,8 @@ class CreateChatHTML:
             '[7, 0, "r"], [7, 7, "r"],'
             '[6, 0, "p"], [6, 1, "p"], [6, 2, "p"], [6, 3, "p"], [6, 4, "p"], [6, 5, "p"], [6, 6, "p"], [6, 7, "p"]'
             '],'
+            '"victory": 1,'
+            '"chat": "current chat messages"'
             '}'
         )
         
@@ -84,12 +91,16 @@ class CreateChatHTML:
                         "var board_size = Math.min("
                                 "window.innerWidth,"
                                 "window.innerHeight)*0.95;"
-                        "var gfx = new GraphicsManager("
-                                "document.getElementById("
-                                    "'canvas_container'),"
-                                    "board_size, board_size);"
+                                #"var gfx = new GraphicsManager("
+                                #"document.getElementById("
+                                #    "'canvas_container'),"
+                                #    "board_size, board_size);"
                         "var json1 = "+jsonStr1+"; "
                         "var json2 = "+jsonStr2+"; "
+                        "var gm = new GameManager("
+                                "document.getElementById("
+                                "'canvas_container'),"
+                                "board_size, board_size, json1);"
         
                         "websocket = '"+self.scheme+"://"+
                                        self.host+":"+
@@ -123,10 +134,15 @@ class CreateChatHTML:
                                 #Update votecount field to value
                                 "$('#voteCount').val(evt.data);"
                             "}"
+                            "else if(evt.data.indexOf('move_timer') !== -1) {"
+                                "var moveTimer = evt.data;"
+                                "alert(moveTimer);"
+                                "$('#moveTimer').val(moveTimer['moveTimer']);"
+                            "}"
                             # Draw board state that we received
                             "else if(evt.data.indexOf('black') !== -1) {"
                                 "var jsonBoard = jQuery.parseJSON(evt.data);"
-                                "gfx.draw(jsonBoard);" 
+                                "gm.update(jsonBoard);" 
                             "}"
                             #If chat message, update chat field
                             "else {"
@@ -138,8 +154,12 @@ class CreateChatHTML:
                                 "}"
                             "}"
                         "};"
+
+                        # Get various information from server on load
                         "ws.onopen = function() {"
                             # TODO: Parse json object from self.user
+                            "ws.send('get_time');"
+                            "ws.send('load_board');"
                             "ws.send('"+str(self.clientId)+" entered the game');" 
                         "};"
                         "ws.onclose = function(evt) {"
@@ -189,6 +209,7 @@ class CreateChatHTML:
             "<button type='button' id='voteButton'>vote</button>"
             "<button type='button' id='drawButton1'>draw1</button>"
             "<button type='button' id='drawButton2'>draw2</button>"
+            "<input id='moveTimer'></input>"
             "<input id='voteCount'></input>" 
              "<form action='#' id='chatform' method='get'>"
                 "<textarea readonly id='chat' cols='35' rows='10'></textarea>"
