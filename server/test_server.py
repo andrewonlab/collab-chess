@@ -7,6 +7,8 @@ import cherrypy
 import createChatHtml 
 import clientHandle
 import json
+import threading
+import vote_counter as vc
 from ws4py.server.cherrypyserver import WebSocketPlugin, WebSocketTool
 from ws4py.websocket import WebSocket
 from ws4py.messaging import TextMessage
@@ -67,7 +69,20 @@ jsonBoard2 = ('{'
 
 currentBoard = jsonBoard1
 
+#class MoveTimerHandler(Thread):
+#    def __init__(self, event, startTime):
+#        Thread.__init__(self)
+#        self.stopped = event
+#        self.startTime = startTime
+#    def run(self):
+#        while not self.stopped and self.startTime > 0: 
+#            self.startTime -= 1
+#    def getTime():
+#        return self.startTime
+
 class ChatWebSocketHandler(WebSocket):
+    # Initialize vote counter
+    vc.VoteCounter()
     def received_message(self, m):
         global voteCount
         global jsonBoard1
@@ -83,7 +98,7 @@ class ChatWebSocketHandler(WebSocket):
             print str(castVote) + "  *** Vote cast ***"
             #TODO: keep track of which clients have already voted
 
-            clientVote = '{ client: '+castVote['clientId']+'}'
+            clientVote = '{\"client\": '+castVote['clientId']+'}'
             msg = "vote:"+str(clientVote)
             cherrypy.engine.publish('websocket-broadcast', msg)
         
@@ -101,6 +116,16 @@ class ChatWebSocketHandler(WebSocket):
             cherrypy.engine.publish('websocket-broadcast', currentBoard)
         elif (str(m) == 'get_time' ):
             cherrypy.engine.publish('websocket-broadcast', moveTimer)
+        elif (str(m) == 'set_team' ):
+            randTeam = random.randint(0, 1)
+            randTeamObj = "{\"team\": "+str(randTeam)+" }"
+            print "team assigned: "+str(randTeamObj)
+            cherrypy.engine.publish('websocket-broadcast', randTeamObj)   
+        elif ('client_board' in str(m) ):
+            m = str(m).split(',') 
+            json_obj = json.loads(m[1])
+            print "Vote received" + str(json_obj)
+             
         else:
             cherrypy.engine.publish('websocket-broadcast', m)
 
@@ -119,8 +144,7 @@ class Root(object):
         clientId = random.randint(1,10000)
         # 0 = white
         # 1 = black
-        clientTeam = random.randint(0,1) 
-        client = clientHandle.ClientHandle(clientId, clientTeam)
+        client = clientHandle.ClientHandle(clientId)
         clientObj = client.createClient() 
         clientList.append(clientObj)
         chat_server = createChatHtml.CreateChatHTML(clientObj,
@@ -140,7 +164,7 @@ if __name__ == '__main__':
     configure_logger(level=logging.DEBUG)
 
     parser = argparse.ArgumentParser(description='Chess Server')
-    parser.add_argument('--host', default='127.0.0.1')
+    parser.add_argument('--host', default='localhost')
     parser.add_argument('-p', '--port', default=9000, type=int)
     parser.add_argument('--ssl', action='store_true')
     args = parser.parse_args()

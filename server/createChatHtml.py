@@ -24,7 +24,9 @@ class CreateChatHTML:
                 "</script>"
                 "<script src='js/Piece.js' type='text/javascript'></script>"
                 "<script src='js/Board.js' type='text/javascript'></script>"
-                "<script src='js/GameManager.js' type='text/javascript'></script>")
+                "<script src='js/GameManager.js' type='text/javascript'></script>"
+                "<script src='js/Counter.js type='text/javascript'></script>"
+                )
         
         return headerString
 
@@ -122,18 +124,23 @@ class CreateChatHTML:
                             #"var jsonBoard = jQuery.parseJSON(evt.data);"
                             #If messaged received is a vote message
                             "if(evt.data.indexOf('vote') !== -1) {"
-                                #Update votecount field to value
-                                "$('#voteCount').val(evt.data);"
                             "}"
                             "else if(evt.data.indexOf('move_timer') !== -1) {"
-                                "var moveTimer = evt.data;"
-                                "alert(moveTimer);"
-                                "$('#moveTimer').val(moveTimer['moveTimer']);"
+                                "var moveTimer = jQuery.parseJSON(evt.data);"
+                                "$('#moveTimer').val(moveTimer['move_timer']);"
                             "}"
                             # Draw board state that we received from server
                             "else if(evt.data.indexOf('black') !== -1) {"
                                 "var jsonBoard = jQuery.parseJSON(evt.data);"
                                 "gm.update(jsonBoard);" 
+                            "}"
+                            
+                            "else if(evt.data.indexOf('team') !== -1) {"
+                                "var myTeam = jQuery.parseJSON(evt.data);"
+                                "var myTeamNumber = myTeam.team;"
+                                "gm.setTeam(myTeamNumber);"
+                                "alert('team assignment triggered');"
+                                "alert(myTeamNumber);"
                             "}"
                             #If chat message, update chat field
                             "else {"
@@ -150,11 +157,11 @@ class CreateChatHTML:
                         "ws.onopen = function() {"
                             # TODO: Parse json object from self.user
                             
-                            "alert($('#chooseTeam').html());"
-                            "alert();"
-                            "ws.send('choose_team,');"
+                            #"alert($('#chooseTeam').html());"
+                            "ws.send('choose_team');"
                             "ws.send('get_time');"
                             "ws.send('load_board');"
+                            "ws.send('set_team');"
                             "ws.send('"+str(self.clientId)+" entered the game');" 
                         "};"
                         "ws.onclose = function(evt) {"
@@ -172,9 +179,10 @@ class CreateChatHTML:
                        
                         #If vote button is clicked, send key str 'vote_button'
                         "$('#voteButton').click(function() {"
-                            "var voteClient ="
-                            "'{\"voteType\":\"vote_count\",\"clientId\":"+str(self.clientId)+"}';"
-                            "ws.send(voteClient);"
+                            # Update client view and get its json
+                            "gm.update();"
+                            "var currJson = gm.getCurrentJson();" 
+                            "ws.send('client_board,'+currJson);"
                         "});"
                         "$('#drawButton1').click(function() {"
                             "ws.send('draw_button1');"
@@ -192,20 +200,13 @@ class CreateChatHTML:
     def getHtmlString(self):
         htmlString =  \
             ("<body>"
-                    "<div id='canvas_container'></div>"
-             "<div id='preload' style='display:none'>"
-             "<img id='king_img' src='/img/png/king_large.png' width='200' height='200' alt='king' />"
-             "<img id='queen_img' src='/img/png/queen_large.png' width='200' height='200' alt='queen' />"
-             "<img id='rook_img' src='/img/png/rook_large.png' width='200' height='200' alt='rook' />"
-             "<img id='bishop_img' src='/img/png/bishop_large.png' width='200' height='200' alt='bishop' />"
-             "<img id='knight_img' src='/img/png/knight_large.png' width='200' height='200' alt='knight' />"
-             "<img id='pawn_img' src='/img/png/pawn_large.png' width='200' height='200' alt='pawn' />"
-             "</div>" 
-             "<div id='chatBox' style='float:right; width:25%;'>"
-             "<button type='button' id='voteButton'>vote</button>"
+                    "<div id='canvas_container' style='float:left;'></div>"
+             
+            "<div id='chatBox' style='float:left;'>"
+             "<button type='button' id='voteButton'>Submit Vote</button>"
              "<button type='button' id='drawButton1'>draw1</button>"
              "<button type='button' id='drawButton2'>draw2</button>"
-             "<input id='moveTimer'></input>"
+             "<div id='countDown'></div>"
              "<input id='voteCount'></input>" 
              "<form action='#' id='chatform' method='get'>"
                 "<textarea readonly id='chat' cols='35' rows='10'></textarea>"
@@ -215,7 +216,7 @@ class CreateChatHTML:
                 "<input id='send' type='submit' value='Send' />"
              "</form>"
             "</div>"
-            
+
             # Team chooser popup box
             "<div id='chooseTeam' style='display:none;'>"
                 "<input type='radio' name='Red' value=0>Red"
@@ -223,6 +224,15 @@ class CreateChatHTML:
                 "<input type='radio' name='Black' value=1>Black"
                 "<input type='button' value='Submit'>"
             "</div>"
+             
+            "<div id='preload' style='display:none'>"
+             "<img id='king_img' src='/img/png/king_large.png' width='200' height='200' alt='king' />"
+             "<img id='queen_img' src='/img/png/queen_large.png' width='200' height='200' alt='queen' />"
+             "<img id='rook_img' src='/img/png/rook_large.png' width='200' height='200' alt='rook' />"
+             "<img id='bishop_img' src='/img/png/bishop_large.png' width='200' height='200' alt='bishop' />"
+             "<img id='knight_img' src='/img/png/knight_large.png' width='200' height='200' alt='knight' />"
+             "<img id='pawn_img' src='/img/png/pawn_large.png' width='200' height='200' alt='pawn' />"
+             "</div>" 
 
              "</body>"
              "</html>")

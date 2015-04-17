@@ -1,13 +1,12 @@
 import json
 
 class ClientHandle:
-    def __init__(self, clientId, clientTeam):
+    def __init__(self, clientId):
         self.clientId = clientId
-        self.clientTeam = clientTeam
 
     def createClient(self):
         clientObj = \
-            '{ "clientId" : '+str(self.clientId)+', "clientTeam" : '+str(self.clientTeam)+' }'
+            '{ "clientId" : '+str(self.clientId)+' }'
     
         clientJson = json.loads(clientObj)
         return clientJson

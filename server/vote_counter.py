@@ -18,6 +18,8 @@ class VoteCounter():
         vote = json.loads(vote)
         self.calculated = False
 
+        print vote
+
         # find existing vote and increment counter
         for v in self.votes:
             if v[1] == vote:
