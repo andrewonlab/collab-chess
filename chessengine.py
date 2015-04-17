@@ -5,6 +5,7 @@ from __future__ import print_function
 import sys
 import json
 import math
+import copy
 from itertools import count
 from collections import Counter, OrderedDict, namedtuple
 
@@ -342,69 +343,162 @@ def searchBoard(board):
     #return the lists and the number of kings
     return teamBlack, teamWhite, kings
 
+def isCheck(pos):
+
+    temp = copy.deepcopy(pos)
+    for moves in temp.genMoves():
+        temp = temp.move(moves)
+        unused1, unused2, kings = searchBoard(temp.board)
+        if (kings < 2):
+            return False
+        temp = copy.deepcopy(pos)
+    return True
+
+def gameOverCheck(pos, tw, tb, redstale, bluestale, k, turn):
+    enough = 0
+    """
+    inCheck = False
+    isCheckMate = False
+    check = []
+    temp = copy.deepcopy(pos)
+    for moves in temp.rotate().genMoves():
+        temp = temp.rotate().move(moves)
+        unused1, unused2, kings = searchBoard(temp.board)
+        if (kings < 2):
+
+            inCheck = True
+            temp1 = copy.deepcopy(temp)
+            for possMoves in temp.genMoves():
+                temp1 = temp1.move(possMoves)
+                if isCheck(temp1, tw, tb, redstale, bluestale) == False:
+                    check.append("F")
+                else:
+                    check.append("D")
+                temp1 = copy.deepcopy(temp)
+        temp = copy.deepcopy(pos)
+    if "F" not in check and "D" in check:
+        print("checkmate")
+    """
+    if k < 2:
+        if turn == True:
+            return 2
+        else:
+            return 1
+
+    if(None not in redstale and None not in bluestale):
+        if(redstale[0]==redstale[1] and redstale[0]==redstale[2]):
+            if(bluestale[0]==bluestale[1] and bluestale[0]==bluestale[2]):
+                return 3
+
+    if(len(tb)<3 and len(tw)<3):
+        for piece in tb:
+            if(piece[2]!='k' and piece[2]!='p' and piece[2]!='b' and piece[2]!='h'):
+                enough = 1
+        for piece in tw:
+            if(piece[2]!='K' and piece[2]!='P' and piece[2]!='B' and piece[2]!='H'):
+                enough = 1
+        if(enough == 0):
+            return 3
+    '''
+    temp = copy.deepcopy(pos)
+    if isCheck(temp.rotate()) == True:
+        print("not check")
+        temp2 = copy.deepcopy(pos)
+        temp3 = copy.deepcopy(pos)
+        for moves in temp2.genMoves():
+            temp3.move(moves)
+            if isCheck(temp3.rotate()) == True:
+                print("not stale")
+                return 0
+            temp3.copy.deepcopy(pos)
+            '''
+    return 0
+
 
 def main():
+
+
     #run indefinitely
     while True:
         #initial board
         pos = Position(initial, 0, (True,True), (True,True), 0, 0)
         tb, tw, k = searchBoard(pos.board)
+
         #write the json file
-        with open('testboard.json', 'w') as file:
-            json.dump({'black': tb, 'white': tw}, file, sort_keys=True, indent=4, separators=(',', ': '))
+        with open('board.json', 'w') as file:
+            json.dump({'black': tb, 'white': tw, 'over':0}, file, sort_keys=True, indent=4, separators=(',', ': '))
+
+        red = []
+        blue = []
+        redstale = []
+        bluestale = []
+        #fill the last three moves with none
+        for x in range(0,3):
+            redstale.append(None)
+            bluestale.append(None)
+
+
+
+
         #run until a team wins
         while True:
             # We add some spaces to the board before we print it.
             # That makes it more readable and pleasing.
-            print(' '.join(pos.board))
+            ' '.join(pos.board)
 
             # We query the user until she enters a legal move.
             move = None
             while move not in pos.genMoves():
-                crdn = input("Bottom team move: ")
-                try:
-                  move = parse(crdn[0:2]), parse(crdn[2:4])
-                except ValueError:
-                  # Inform the user when invalid input (e.g. "help") is entered
-                  print("Invalid input. Please enter a move in the proper format (e.g. g8f6)")
+                crdn = input()
+                move = parse(crdn[0:2]), parse(crdn[2:4])
 
             #make the move
             pos = pos.move(move)
             tb, tw, k = searchBoard(pos.rotate().board)
-            #if a king was taken
-            if k != 2:
-                print("bottom team wins")
+            red.append(move)
+            if(len(red) != 2):
+                redstale.append(red)
+                redstale = redstale[1:]
+                red = []
+            ov = gameOverCheck(pos, tw, tb, redstale, bluestale, k, True)
+            if ov != 0:
                 break
+
             #write json of new board
-            with open('testboard.json', 'w') as file:
-                json.dump({'black': tb, 'white': tw}, file, sort_keys=True, indent=4, separators=(',', ': '))
+            with open('board.json', 'w') as file:
+                json.dump({'black': tb, 'white': tw, 'over':ov}, file, sort_keys=True, indent=4, separators=(',', ': '))
 
             # After our move we rotate the board and print it again.
             # This allows us to see the effect of our move.
-            print(' '.join(pos.rotate().board))
+            ' '.join(pos.rotate().board)
+
+
+
 
             #Other team move
             move = None
             while move not in pos.genMoves():
-                crdn = input("Top team move: ")
-                try:
-                  ab = moveSwitch(crdn[0:2])
-                  cd = moveSwitch(crdn[2:4])
-                  full = ab+cd
-                  move = parse(full[0:2]), parse(full[2:4])
-                except ValueError:
-                  # Inform the user when invalid input (e.g. "help") is entered
-                  print("Invalid input. Please enter a move in the proper format (e.g. g8f6)")
+                crdn = input()
+                ab = moveSwitch(crdn[0:2])
+                cd = moveSwitch(crdn[2:4])
+                full = ab+cd
+                move = parse(full[0:2]), parse(full[2:4])
+
             #moke move
             pos = pos.move(move)
             tb, tw, k = searchBoard(pos.board)
-            #if a king was take, game is over
-            if k != 2:
-                print("top team wins")
+            blue.append(move)
+            if(len(blue) != 2):
+                bluestale.append(blue)
+                bluestale = bluestale[1:]
+                blue = []
+            ov = gameOverCheck(pos, tw, tb, redstale, bluestale, k, False)
+            if ov != 0:
                 break
+
             #write new json
-            with open('testboard.json', 'w') as file:
-                json.dump({'black': tb, 'white': tw}, file, sort_keys=True, indent=4, separators=(',', ': '))
+            with open('board.json', 'w') as file:
+                json.dump({'black': tb, 'white': tw, 'over':ov}, file, sort_keys=True, indent=4, separators=(',', ': '))
 
 
 if __name__ == '__main__':
