@@ -139,8 +139,14 @@ class CreateChatHTML:
                                 "var myTeam = jQuery.parseJSON(evt.data);"
                                 "var myTeamNumber = myTeam.team;"
                                 "gm.setTeam(myTeamNumber);"
-                                "alert('team assignment triggered');"
-                                "alert(myTeamNumber);"
+                                
+                                "if (myTeamNumber == 1) {"
+                                    "alert('You have been assigned to "
+                                            "team Black');"
+                                "} else {"
+                                    "alert('You have been assigned to "
+                                            "team Red');"
+                                "}"
                             "}"
                             #If chat message, update chat field
                             "else {"
@@ -179,10 +185,12 @@ class CreateChatHTML:
                        
                         #If vote button is clicked, send key str 'vote_button'
                         "$('#voteButton').click(function() {"
-                            # Update client view and get its json
-                            "gm.update();"
-                            "var currJson = gm.getCurrentJson();" 
-                            "ws.send('client_board,'+currJson);"
+                            "var clientJson = gm.getClientJson();" 
+                            "var team = gm.getTeam();"
+                            "alert('Your vote has been submitted');"
+                            "ws.send('client_vote-'+team+'-'+"
+                                "clientJson[\"white\"]+'-'+"
+                                "clientJson[\"black\"]);"
                         "});"
                         "$('#drawButton1').click(function() {"
                             "ws.send('draw_button1');"

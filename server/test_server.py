@@ -8,7 +8,7 @@ import createChatHtml
 import clientHandle
 import json
 import threading
-import vote_counter as vc
+import voteCounter
 from ws4py.server.cherrypyserver import WebSocketPlugin, WebSocketTool
 from ws4py.websocket import WebSocket
 from ws4py.messaging import TextMessage
@@ -19,6 +19,9 @@ global jsonBoard1
 global jsonBoard2
 global currentBoard
 global clientList
+
+# Initialize vote counter
+vc = voteCounter.VoteCounter()
 
 # Timer in seconds
 moveTimer = '{ "move_timer": 15 }' 
@@ -69,27 +72,16 @@ jsonBoard2 = ('{'
 
 currentBoard = jsonBoard1
 
-#class MoveTimerHandler(Thread):
-#    def __init__(self, event, startTime):
-#        Thread.__init__(self)
-#        self.stopped = event
-#        self.startTime = startTime
-#    def run(self):
-#        while not self.stopped and self.startTime > 0: 
-#            self.startTime -= 1
-#    def getTime():
-#        return self.startTime
-
 class ChatWebSocketHandler(WebSocket):
-    # Initialize vote counter
-    vc.VoteCounter()
     def received_message(self, m):
         global voteCount
         global jsonBoard1
         global jsonBoard2
         global currentBoard
         global moveTimer
-         
+       
+        #pos = Position(initial, 0, (True,True), (True,True), 0, 0) 
+        
         #TODO: parse received messages here and determine broadcast action
         # use a string 'key' for m to distinguish different messages
         print m
@@ -121,11 +113,21 @@ class ChatWebSocketHandler(WebSocket):
             randTeamObj = "{\"team\": "+str(randTeam)+" }"
             print "team assigned: "+str(randTeamObj)
             cherrypy.engine.publish('websocket-broadcast', randTeamObj)   
-        elif ('client_board' in str(m) ):
-            m = str(m).split(',') 
-            json_obj = json.loads(m[1])
-            print "Vote received" + str(json_obj)
-             
+        elif ('client_vote' in str(m) ):
+            m = str(m).split('-') 
+            team = m[1]
+            if team == '1':
+                print 'black assigned'
+                client_vote_team = m[2]
+                client_vote_enemy = m[3]
+            elif team == '0':
+                print 'white assigned'
+                client_vote_team = m[2]
+                client_vote_enemy = m[3]
+
+            print "vote received: "+str(client_vote_team)+str(client_vote_enemy)
+
+            #vote = vc.add_vote(client_vote)
         else:
             cherrypy.engine.publish('websocket-broadcast', m)
 

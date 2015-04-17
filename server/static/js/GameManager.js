@@ -8,6 +8,8 @@ var GameManager = function (canvas_container, width, height, json) {
     var last_move = null;
     var last_occupant = null;
     var team = 0;
+    // used to send current client json to server
+    var client_json = json;
 
     /**
      * Updates the board
@@ -16,21 +18,25 @@ var GameManager = function (canvas_container, width, height, json) {
     this.update = function (json) {
         if (typeof json !== 'undefined') {
             board = new Board(json);
-            my_json = json;
         }
 
         json = typeof json !== 'undefined' ? json : my_json;
         my_json = json;
+        client_json = my_json;
 
         this.gfx.draw(json, moves, board);
+    };
+
+    this.getClientJson = function () {
+        return client_json;
     };
 
     this.undoMove = function () {
         undoMove();
     };
 
-    this.getCurrentJson = function () {
-        return my_json;
+    this.getLastMove = function () {
+        return last_move;
     };
 
     this.setTeam = function(myTeam) {
@@ -39,6 +45,10 @@ var GameManager = function (canvas_container, width, height, json) {
         } else {
             team = 0;
         }
+    };
+
+    this.getTeam = function() {
+        return team;
     };
 
     function undoMove() {
@@ -101,19 +111,27 @@ var GameManager = function (canvas_container, width, height, json) {
 
     function updateJSON(from_r, from_c, to_r, to_c, team) {
         var team_pieces = [];
+        var team_name = "";
         if (team === 0) {
             team_pieces = my_json["white"];
+            team_name = "white";
         } else {
             team_pieces = my_json["black"];
+            team_name = "black";
         }
 
         for (var i=0; i<team_pieces.length; i++) {
             if (team_pieces[i][0] == from_r && team_pieces[i][1] == from_c) {
                 team_pieces[i][0] = to_r;
                 team_pieces[i][1] = to_c;
+                
+                client_json[team_name][i][0] = to_r;
+                client_json[team_name][i][1] = to_c;
+                
                 return;
             }
         }
+
     }
 
     function validMove(target_tile) {
