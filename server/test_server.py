@@ -20,9 +20,14 @@ global jsonBoard1
 global jsonBoard2
 global currentBoard
 global clientList
+global clientVotedList
+global voteCountRound
+global vc
 
 # Initialize vote counter
 vc = voteCounter.VoteCounter()
+
+clientVotedList = []
 A1, H1, A8, H8 = 91, 98, 21, 28
 initial = ( 
     '         \n'  #   0 -  9
@@ -134,7 +139,7 @@ clientVote = ''
 clientList = []
 jsonBoard1 = ('{'
         '"black": ['
-            '[3, 4, "k"],'
+            '[0, 4, "k"],'
             '[0, 3, "q"],'
             '[0, 2, "b"], [0, 5, "b"],'
             '[0, 1, "h"], [0, 6, "h"],'
@@ -176,15 +181,19 @@ jsonBoard2 = ('{'
     )
 
 currentBoard = jsonBoard1
+voteCountRound = 0
 
 class ChatWebSocketHandler(WebSocket):
     def received_message(self, m):
-        global voteCount
+        global voteCountRound
         global jsonBoard1
         global jsonBoard2
         global currentBoard
         global moveTimer
-       
+        global clientList
+        global clientVotedList
+        global vc
+
         #pos = Position(initial, 0, (True,True), (True,True), 0, 0) 
         
         #TODO: parse received messages here and determine broadcast action
@@ -213,19 +222,41 @@ class ChatWebSocketHandler(WebSocket):
             cherrypy.engine.publish('websocket-broadcast', currentBoard)
         elif (str(m) == 'get_time' ):
             cherrypy.engine.publish('websocket-broadcast', moveTimer)
-        elif (str(m) == 'set_team' ):
+        elif ('set_team' in str(m) ):
+            print "Current clients: "+ str(clientList)
+            local_client = str(m).split('-')[1]
             randTeam = random.randint(0, 1)
-            randTeamObj = "{\"team\": "+str(randTeam)+" }"
-            print "team assigned: "+str(randTeamObj)
+            randTeamObj = (
+                    "{\"team\": "+str(randTeam)+","
+                    "\"clientid\": "+str(local_client)+"}"
+                    )
+            print "team assigned: "+str(randTeamObj) + \
+                    "to client: "+str(local_client)
             cherrypy.engine.publish('websocket-broadcast', randTeamObj)   
         
         elif ('last_move' in str(m) ):
             m = str(m).split('-')
-            vc.add_vote(m[1])
-        
-            #most_popular = vc.get_next_popular_vote()
-            #jsonObj = engine.makeMove(most_popular)
-    
+            clientCount = len(clientList)
+            
+            if m[2] not in clientVotedList:
+                vc.add_vote(m[1])
+                print "Client "+str(m[2])+" has voted"
+                voteCountRound = voteCountRound + 1
+                most_popular = vc.get_next_popular_vote()
+                print "Popular vote: "+str(most_popular)
+                jsonObj = engine.makeMove(most_popular)
+                clientVotedList.append(m[2])
+            
+            print "Current round # of vote: " + str(voteCountRound)
+            # Determine user percentage vote threshold
+            # before executing json object
+            if (voteCountRound >= 0.7 * clientCount):
+                print "Round is over. Most popular move executed"
+                currentBoard = jsonObj
+                clientVotedList = []
+                voteCountRound = 0
+                cherrypy.engine.publish('websocket-broadcast',currentBoard)
+
         elif ('client_vote' in str(m) ):
             m = str(m).split('-') 
             
@@ -263,7 +294,7 @@ class Root(object):
         # 1 = black
         client = clientHandle.ClientHandle(clientId)
         clientObj = client.createClient() 
-        clientList.append(clientObj)
+        clientList.append(clientId)
         chat_server = createChatHtml.CreateChatHTML(clientObj,
                         str(self.scheme), str(self.host), str(self.port))
         html_string = chat_server.getString()
@@ -281,7 +312,7 @@ if __name__ == '__main__':
     configure_logger(level=logging.DEBUG)
 
     parser = argparse.ArgumentParser(description='Chess Server')
-    parser.add_argument('--host', default='localhost')
+    parser.add_argument('--host', default='10.15.178.132')
     parser.add_argument('-p', '--port', default=9000, type=int)
     parser.add_argument('--ssl', action='store_true')
     args = parser.parse_args()

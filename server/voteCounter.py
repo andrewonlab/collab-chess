@@ -71,6 +71,7 @@ class VoteCounter():
         res += str(8 - move[0])
         res += self.get_col(move[3])
         res += str(8 - move[2])
+        print "RES: "+ str(res)
         return res
 
     def get_col(self, c):

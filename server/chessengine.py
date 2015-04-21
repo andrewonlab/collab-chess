@@ -197,7 +197,7 @@ class Position(namedtuple('Position', 'board score wc bc ep kp')):
             if j - i in (N+W, N+E) and q == '.':
                 board = put(board, j+S, '.')
         # We rotate the returned position, so it's ready for the next player
-        return Position(board, 0, wc, bc, ep, kp).rotate()
+        return Position(board, 0, wc, bc, ep, kp)
     
     def makeMove(self, crdn):
         move = parse(crdn[0:2]), parse(crdn[2:4])
