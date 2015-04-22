@@ -18,13 +18,14 @@ var GameManager = function (canvas_container, width, height, json) {
     this.update = function (json) {
         if (typeof json !== 'undefined') {
             board = new Board(json);
+            last_move = null;
         }
 
         json = typeof json !== 'undefined' ? json : my_json;
         my_json = json;
         client_json = my_json;
 
-        this.gfx.draw(json, moves, board);
+        this.gfx.draw(json, moves, last_move, board);
     };
 
     this.getClientJson = function () {
@@ -93,6 +94,16 @@ var GameManager = function (canvas_container, width, height, json) {
                 } else {
                     last_occupant = null;
                 }
+                // if there was a previous move this turn, undo it
+                if (last_move !== null) {
+                    if (last_move[0] == tile[0] && last_move[1] == tile[1]) {
+                        undoMove();
+                        selected_tile = null;
+                        moves = [];
+                        return;
+                    }
+                    undoMove(); 
+                }
 
                 board.movePiece(selected_tile[0], selected_tile[1], r, c);
                 updateJSON(selected_tile[0], selected_tile[1], r, c, board.getPiece(r, c).team);
@@ -106,6 +117,9 @@ var GameManager = function (canvas_container, width, height, json) {
         } else if (board.isOccupied(r, c) && board.getPiece(r, c).team == team) {
             selected_tile = tile;
             moves = board.getPiece(r, c).getMoves(board);
+            if (last_move !== null && tile[0] == last_move[2] && tile[1] == last_move[3]) {
+                moves = [[last_move[0], last_move[1]]];
+            } 
         }
     }
 
