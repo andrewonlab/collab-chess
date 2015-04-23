@@ -207,7 +207,7 @@ class Position(namedtuple('Position', 'board score wc bc ep kp')):
         ov = gameOverCheck(pos, tw, tb, [None], [None], k, False)
         
         #write new json
-        return json.dumps({'black': tb, 'white': tw, 'over':ov}, sort_keys=True, indent=4, separators=(',', ': '))
+        return (json.dumps({'black': tb, 'white': tw, 'over':ov}, sort_keys=True, indent=4, separators=(',', ': ')), pos)
         
 
     def value(self, move):

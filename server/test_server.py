@@ -23,6 +23,7 @@ global clientList
 global clientVotedList
 global voteCountRound
 global vc
+global engine
 
 # Initialize vote counter
 vc = voteCounter.VoteCounter()
@@ -193,6 +194,7 @@ class ChatWebSocketHandler(WebSocket):
         global clientList
         global clientVotedList
         global vc
+        global engine
 
         #pos = Position(initial, 0, (True,True), (True,True), 0, 0) 
         
@@ -242,18 +244,23 @@ class ChatWebSocketHandler(WebSocket):
                 vc.add_vote(m[1])
                 print "Client "+str(m[2])+" has voted"
                 voteCountRound = voteCountRound + 1
-                most_popular = vc.get_next_popular_vote()
-                print "Popular vote: "+str(most_popular)
-                jsonObj = engine.makeMove(most_popular)
                 clientVotedList.append(m[2])
             
-            print "Current round # of vote: " + str(voteCountRound)
+            #print "Current round # of vote: " + str(voteCountRound)
             # Determine user percentage vote threshold
             # before executing json object
-            if (voteCountRound >= 0.7 * clientCount):
+            #if (voteCountRound >= 0.7 * clientCount):
                 print "Round is over. Most popular move executed"
+                most_popular = vc.get_next_popular_vote()
+                print "Popular vote: "+str(most_popular)
+                
+                x = engine.makeMove(most_popular)
+                jsonObj = x[0] 
+                engine = x[1]
+                
                 currentBoard = jsonObj
                 clientVotedList = []
+                vc.reset() 
                 voteCountRound = 0
                 cherrypy.engine.publish('websocket-broadcast',currentBoard)
 
@@ -312,7 +319,7 @@ if __name__ == '__main__':
     configure_logger(level=logging.DEBUG)
 
     parser = argparse.ArgumentParser(description='Chess Server')
-    parser.add_argument('--host', default='10.15.178.132')
+    parser.add_argument('--host', default='localhost')
     parser.add_argument('-p', '--port', default=9000, type=int)
     parser.add_argument('--ssl', action='store_true')
     args = parser.parse_args()
