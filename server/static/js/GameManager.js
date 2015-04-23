@@ -8,6 +8,7 @@ var GameManager = function (canvas_container, width, height, json) {
     var last_move = null;
     var last_occupant = null;
     var team = 0;
+    var turn = 0;
     // used to send current client json to server
     var client_json = json;
 
@@ -18,6 +19,10 @@ var GameManager = function (canvas_container, width, height, json) {
     this.update = function (json) {
         if (typeof json !== 'undefined') {
             board = new Board(json);
+        }
+
+        if (typeof json !== 'undefined' && typeof my_json !== 'undefined') {
+            turn = getCurrentTurn(json, my_json);
         }
 
         json = typeof json !== 'undefined' ? json : my_json;
@@ -81,6 +86,10 @@ var GameManager = function (canvas_container, width, height, json) {
     }
 
     function boardClick (event) {
+        if (turn != team) {
+            return;
+        }
+
         var tile = getClickedTile(event);
         var r = tile[0];
         var c = tile[1];
@@ -142,6 +151,38 @@ var GameManager = function (canvas_container, width, height, json) {
         }
 
         return false;
+    }
+
+    function getCurrentTurn(j1, j2) {
+        var b = 1;
+        var w = 0;
+        var t1 = j1["white"];
+        var t2 = j2["white"];
+        if (findJsonTeamMismatch(t1, t2)) {
+            return b;
+        }
+
+        return w;
+    }
+
+    function findJsonTeamMismatch(t1, t2)
+    {
+        if (t1.length !== t2.length) {
+            return 1;
+        }
+
+        for (var i=0; i<t1.length; i++) {
+            var found = false;
+            for (var j = 0; j<t2.length; j++) {
+                if (t1[i] == t2[j]) {
+                    found = true;
+                }
+            }
+            if (!found) {
+                return 1;
+            }
+        }
+        return 0;
     }
 
     this.assignTeam = function (_team) {

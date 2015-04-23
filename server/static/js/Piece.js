@@ -231,7 +231,7 @@ Pawn.prototype.getMoves = function () {
     var fwd_move = [this.r + this.d, this.c];
     if (!this.board.isOccupied(fwd_move[0], fwd_move[1])) {
         moves.push(fwd_move);
-        if (this.num_moves === 0) {
+        if ((this.r == 1 && this.d == 1) || (this.r == 6 && this.d == -1)) {
             fwd_move = [this.r + 2 * this.d, this.c];
             if (!this.board.isOccupied(fwd_move[0], fwd_move[1])) {
                 moves.push(fwd_move);
