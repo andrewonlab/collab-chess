@@ -227,7 +227,10 @@ class ChatWebSocketHandler(WebSocket):
         elif ('set_team' in str(m) ):
             print "Current clients: "+ str(clientList)
             local_client = str(m).split('-')[1]
-            randTeam = random.randint(0, 1)
+            #randTeam = random.randint(0, 1)
+            randTeam = len(clientList) % 2
+            print "Client length: " + str(randTeam)
+
             randTeamObj = (
                     "{\"team\": "+str(randTeam)+","
                     "\"clientid\": "+str(local_client)+"}"
@@ -246,10 +249,10 @@ class ChatWebSocketHandler(WebSocket):
                 voteCountRound = voteCountRound + 1
                 clientVotedList.append(m[2])
             
-            #print "Current round # of vote: " + str(voteCountRound)
+            print "Current round # of vote: " + str(voteCountRound)
             # Determine user percentage vote threshold
             # before executing json object
-            #if (voteCountRound >= 0.7 * clientCount):
+            if (voteCountRound >= 0.4 * clientCount):
                 print "Round is over. Most popular move executed"
                 most_popular = vc.get_next_popular_vote()
                 print "Popular vote: "+str(most_popular)
@@ -257,7 +260,7 @@ class ChatWebSocketHandler(WebSocket):
                 x = engine.makeMove(most_popular)
                 jsonObj = x[0] 
                 engine = x[1]
-                
+                  
                 currentBoard = jsonObj
                 clientVotedList = []
                 vc.reset() 
