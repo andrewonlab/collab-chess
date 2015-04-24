@@ -33,6 +33,10 @@ var GameManager = function (canvas_container, width, height, json) {
         this.gfx.draw(json, moves, last_move, board);
     };
 
+    this.getTurn = function () {
+        return turn;
+    };
+
     this.getClientJson = function () {
         return client_json;
     };

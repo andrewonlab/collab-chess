@@ -212,18 +212,17 @@ class ChatWebSocketHandler(WebSocket):
         
         # Draw button is a test version of a vote having completed.
         # A json object with the most votes should be cast.
-        elif (str(m) == 'draw_button1'):
-            print "*****draw button1 pressed ****"
-            currentBoard = jsonBoard1
+        elif (str(m) == 'new_board'):
             cherrypy.engine.publish('websocket-broadcast', jsonBoard1)
-        elif (str(m) == 'draw_button2'):
-            print "*****draw button2 pressed ****"
-            currentBoard = jsonBoard2
-            cherrypy.engine.publish('websocket-broadcast', jsonBoard2)
         elif (str(m) == 'load_board'):
             cherrypy.engine.publish('websocket-broadcast', currentBoard)
         elif (str(m) == 'get_time' ):
             cherrypy.engine.publish('websocket-broadcast', moveTimer)
+        elif ('leave' in str(m) ):
+            clientId = m.split('-')[1]
+            clientList.remove(clientId)
+            print str(clientId) + " has left from server"
+            print "Current clients: "+ str(clientList)
         elif ('set_team' in str(m) ):
             print "Current clients: "+ str(clientList)
             local_client = str(m).split('-')[1]
@@ -260,12 +259,18 @@ class ChatWebSocketHandler(WebSocket):
                 x = engine.makeMove(most_popular)
                 jsonObj = x[0] 
                 engine = x[1]
-                  
+                
+                jsonBoard = json.loads(jsonObj)
+
                 currentBoard = jsonObj
                 clientVotedList = []
                 vc.reset() 
                 voteCountRound = 0
-                cherrypy.engine.publish('websocket-broadcast',currentBoard)
+                
+                if jsonBoard['over'] == 1:
+                    cherrypy.engine.publish('websocket-broadcast', 'game_over')
+                else:
+                    cherrypy.engine.publish('websocket-broadcast',currentBoard)
 
         elif ('client_vote' in str(m) ):
             m = str(m).split('-') 
