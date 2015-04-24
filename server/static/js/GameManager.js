@@ -181,14 +181,16 @@ var GameManager = function (canvas_container, width, height, json) {
 
     function findJsonTeamMismatch(t1, t2)
     {
+        // return 0 because if mismatches are caused by missing pieces
+        // then this team did not just move
         if (t1.length !== t2.length) {
-            return 1;
+            return 0;
         }
 
         for (var i=0; i<t1.length; i++) {
             var found = false;
             for (var j = 0; j<t2.length; j++) {
-                if (t1[i] == t2[j]) {
+                if (t1[i][0] == t2[j][0] && t1[i][1] == t2[j][1] && t1[i][2] == t2[j][2]) {
                     found = true;
                 }
             }
