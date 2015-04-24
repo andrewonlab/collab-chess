@@ -24,7 +24,9 @@ global clientVotedList
 global voteCountRound
 global vc
 global engine
+global turn 
 
+turn = 0
 # Initialize vote counter
 vc = voteCounter.VoteCounter()
 
@@ -156,7 +158,8 @@ jsonBoard1 = ('{'
             '[6, 0, "p"], [6, 1, "p"], [6, 2, "p"], [6, 3, "p"], [6, 4, "p"], [6, 5, "p"], [6, 6, "p"], [6, 7, "p"]'
             '],'
             '"victory": 1,'
-            '"chat": "current chat messages"'
+            '"chat": "current chat messages",'
+            '"turn": 0'
             '}'
     )
 jsonBoard2 = ('{'
@@ -195,6 +198,7 @@ class ChatWebSocketHandler(WebSocket):
         global clientVotedList
         global vc
         global engine
+        global turn
 
         #pos = Position(initial, 0, (True,True), (True,True), 0, 0) 
         
@@ -213,14 +217,16 @@ class ChatWebSocketHandler(WebSocket):
         # Draw button is a test version of a vote having completed.
         # A json object with the most votes should be cast.
         elif (str(m) == 'new_board'):
+            engine = chessengine.Position(initial, 0, (True,True), (True,True), 0, 0)
+            turn = 0
             cherrypy.engine.publish('websocket-broadcast', jsonBoard1)
         elif (str(m) == 'load_board'):
             cherrypy.engine.publish('websocket-broadcast', currentBoard)
         elif (str(m) == 'get_time' ):
             cherrypy.engine.publish('websocket-broadcast', moveTimer)
         elif ('leave' in str(m) ):
-            clientId = m.split('-')[1]
-            clientList.remove(clientId)
+            clientId = str(m).split('-')[1].strip("\"")
+            clientList.remove(int(clientId))
             print str(clientId) + " has left from server"
             print "Current clients: "+ str(clientList)
         elif ('set_team' in str(m) ):
@@ -255,14 +261,17 @@ class ChatWebSocketHandler(WebSocket):
                 print "Round is over. Most popular move executed"
                 most_popular = vc.get_next_popular_vote()
                 print "Popular vote: "+str(most_popular)
-                
+               
                 x = engine.makeMove(most_popular)
                 jsonObj = x[0] 
                 engine = x[1]
                 
                 jsonBoard = json.loads(jsonObj)
+                turn += 1
+                jsonBoard['turn'] += turn 
 
-                currentBoard = jsonObj
+                currentBoard = json.dumps(jsonBoard)
+                
                 clientVotedList = []
                 vc.reset() 
                 voteCountRound = 0
@@ -274,7 +283,6 @@ class ChatWebSocketHandler(WebSocket):
 
         elif ('client_vote' in str(m) ):
             m = str(m).split('-') 
-            
             
             #team = m[1]
             #if team == '1':
@@ -327,7 +335,7 @@ if __name__ == '__main__':
     configure_logger(level=logging.DEBUG)
 
     parser = argparse.ArgumentParser(description='Chess Server')
-    parser.add_argument('--host', default='localhost')
+    parser.add_argument('--host', default='10.15.178.132')
     parser.add_argument('-p', '--port', default=9000, type=int)
     parser.add_argument('--ssl', action='store_true')
     args = parser.parse_args()

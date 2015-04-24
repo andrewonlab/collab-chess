@@ -22,10 +22,6 @@ var GameManager = function (canvas_container, width, height, json) {
             last_move = null;
         }
 
-        if (typeof json !== 'undefined' && typeof my_json !== 'undefined') {
-            turn = getCurrentTurn(json, my_json);
-        }
-
         json = typeof json !== 'undefined' ? json : my_json;
         my_json = json;
         client_json = my_json;
@@ -91,7 +87,7 @@ var GameManager = function (canvas_container, width, height, json) {
     }
 
     function boardClick (event) {
-        if (turn != team) {
+        if (getCurrentTurn() != team) {
             return;
         }
 
@@ -172,6 +168,8 @@ var GameManager = function (canvas_container, width, height, json) {
     }
 
     function getCurrentTurn(j1, j2) {
+        turn = my_json["turn"] % 2;
+        return turn;       
         var b = 1;
         var w = 0;
         var t1 = j1["white"];

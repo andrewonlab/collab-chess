@@ -200,6 +200,7 @@ class Position(namedtuple('Position', 'board score wc bc ep kp')):
         return Position(board, 0, wc, bc, ep, kp)
     
     def makeMove(self, crdn):
+        
         move = parse(crdn[0:2]), parse(crdn[2:4])
         pos = self.move(move) 
         tb, tw, k = searchBoard(pos.board)
@@ -207,7 +208,7 @@ class Position(namedtuple('Position', 'board score wc bc ep kp')):
         ov = gameOverCheck(pos, tw, tb, [None], [None], k, False)
         
         #write new json
-        return (json.dumps({'black': tb, 'white': tw, 'over':ov}, sort_keys=True, indent=4, separators=(',', ': ')), pos)
+        return (json.dumps({'black': tb, 'white': tw, 'over':ov, 'turn':0}, sort_keys=True, indent=4, separators=(',', ': ')), pos)
         
 
     def value(self, move):

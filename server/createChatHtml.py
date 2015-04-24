@@ -200,7 +200,7 @@ class CreateChatHTML:
                             "var clientId = "+str(self.clientId)+";"
                             "var teamName = gm.getTurn();"
                             "var myTeam = gm.getTeam();"
-                            "if (teamName == myTeam) {"
+                            "if (teamName == myTeam && lastMove !== null) {"
                                 "$('#gameDesc').val('Your vote has been submitted');"
                                 "ws.send('last_move-'+strLastMove+'-'+clientId);"
                             "} else {"
